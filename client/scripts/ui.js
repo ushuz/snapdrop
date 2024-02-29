@@ -27,7 +27,6 @@ class PeersUI {
         if ($(peer.id)) return; // peer already exists
         const peerUI = new PeerUI(peer);
         $$('x-peers').appendChild(peerUI.$el);
-        setTimeout(e => window.animateBackground(false), 1750); // Stop animation
     }
 
     _onPeers(peers) {
@@ -435,12 +434,12 @@ class Notifications {
         }
 
         // Notification is persistent on Android. We have to close it manually
-        const visibilitychangeHandler = () => {                             
-            if (document.visibilityState === 'visible') {    
+        const visibilitychangeHandler = () => {
+            if (document.visibilityState === 'visible') {
                 notification.close();
                 Events.off('visibilitychange', visibilitychangeHandler);
-            }                                                       
-        };                                                                                
+            }
+        };
         Events.on('visibilitychange', visibilitychangeHandler);
 
         return notification;
