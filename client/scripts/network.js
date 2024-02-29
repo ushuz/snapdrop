@@ -187,12 +187,12 @@ class Peer {
 
     _onChunkReceived(chunk) {
         if(!chunk.byteLength) return;
-        
+
         this._digester.unchunk(chunk);
         const progress = this._digester.progress;
         this._onDownloadProgress(progress);
 
-        // occasionally notify sender about our progress 
+        // occasionally notify sender about our progress
         if (progress - this._lastProgress < 0.01) return;
         this._lastProgress = progress;
         this._sendProgress(progress);
@@ -254,7 +254,7 @@ class RTCPeer extends Peer {
     }
 
     _openChannel() {
-        const channel = this._conn.createDataChannel('data-channel', { 
+        const channel = this._conn.createDataChannel('data-channel', {
             ordered: true,
             reliable: true // Obsolete. See https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/reliable
         });
@@ -522,7 +522,11 @@ class Events {
 
 RTCPeer.config = {
     'sdpSemantics': 'unified-plan',
-    'iceServers': [{
-        urls: 'stun:stun.l.google.com:19302'
-    }]
+    'iceServers': [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun3.l.google.com:19302' },
+      { urls: 'stun:stun4.l.google.com:19302' },
+    ],
 }
