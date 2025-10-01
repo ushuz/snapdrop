@@ -237,6 +237,12 @@ class RTCPeer extends Peer {
     _connect(peerId, isCaller) {
         if (!this._conn) this._openConnection(peerId, isCaller);
 
+        // Check if connection is in a valid state for operations
+        if (this._conn.signalingState === 'closed') {
+            console.log('RTC: Connection is closed, creating new connection');
+            this._openConnection(peerId, isCaller);
+        }
+
         if (isCaller) {
             this._openChannel();
         } else {
@@ -261,6 +267,14 @@ class RTCPeer extends Peer {
 
     _onDescription(description) {
         // description.sdp = description.sdp.replace('b=AS:30', 'b=AS:1638400');
+        console.log('RTC: Setting local description, signaling state:', this._conn.signalingState);
+
+        // Check if we can set local description
+        if (this._conn.signalingState === 'stable' && description.type === 'answer') {
+            console.log('RTC: Cannot set local answer in stable state');
+            return;
+        }
+
         this._conn.setLocalDescription(description)
             .then(_ => this._sendSignal({ sdp: description }))
             .catch(e => this._onError(e));
@@ -275,16 +289,35 @@ class RTCPeer extends Peer {
         if (!this._conn) this._connect(message.sender, false);
 
         if (message.sdp) {
+            console.log('RTC: Received SDP', message.sdp.type, 'connection state:', this._conn.connectionState, 'signaling state:', this._conn.signalingState);
+
+            // Check if we can set remote description
+            if (this._conn.signalingState === 'stable' && message.sdp.type === 'answer') {
+                console.log('RTC: Ignoring answer in stable state');
+                return;
+            }
+
             this._conn.setRemoteDescription(new RTCSessionDescription(message.sdp))
                 .then( _ => {
                     if (message.sdp.type === 'offer') {
-                        return this._conn.createAnswer()
-                            .then(d => this._onDescription(d));
+                        // Only create answer if we're in the correct state
+                        if (this._conn.signalingState === 'have-remote-offer') {
+                            return this._conn.createAnswer()
+                                .then(d => this._onDescription(d));
+                        } else {
+                            console.log('RTC: Cannot create answer in state', this._conn.signalingState);
+                        }
                     }
                 })
                 .catch(e => this._onError(e));
         } else if (message.ice) {
-            this._conn.addIceCandidate(new RTCIceCandidate(message.ice));
+            // Only add ICE candidates if we have a remote description set
+            if (this._conn.remoteDescription) {
+                this._conn.addIceCandidate(new RTCIceCandidate(message.ice))
+                    .catch(e => console.log('RTC: Error adding ICE candidate:', e));
+            } else {
+                console.log('RTC: Ignoring ICE candidate, no remote description');
+            }
         }
     }
 
