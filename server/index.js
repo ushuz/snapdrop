@@ -189,8 +189,10 @@ class Peer {
     _setIP(request) {
         if (request.headers['x-forwarded-for']) {
             this.ip = request.headers['x-forwarded-for'].split(/\s*,\s*/)[0];
+            console.log(`Peer ${this.id} IP using X-Forwarded-For: ${this.ip}`, { headers: request.headers });
         } else {
             this.ip = request.connection.remoteAddress;
+            console.log(`Peer ${this.id} IP using remoteAddress: ${this.ip}`, { headers: request.headers });
         }
         // IPv4 and IPv6 use different values to refer to localhost
         if (this.ip == '::1' || this.ip == '::ffff:127.0.0.1') {
