@@ -549,10 +549,14 @@ class Events {
     }
 }
 
+const username = "b3105de5a7529a518de5dc82";
+const credential = "fopKqp2qi7/m6aHj";
 
 RTCPeer.config = {
     'sdpSemantics': 'unified-plan',
-    'iceServers': [{
-        urls: 'stun:stun.l.google.com:19302'
-    }]
+    'iceServers': [
+      { urls: "stun:stun.relay.metered.ca:80" },
+      { urls: "turn:global.relay.metered.ca:80", username, credential },
+      { urls: "turn:global.relay.metered.ca:443", username, credential },
+    ]
 }
